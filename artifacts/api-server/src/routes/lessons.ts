@@ -60,6 +60,7 @@ router.get("/lessons/:lessonId", async (req, res) => {
         wordBank: e.wordBank ?? null,
         pairs: e.pairs ?? null,
         hint: e.hint ?? null,
+        correctAnswer: e.correctAnswer ?? null,
       })),
     }),
   );

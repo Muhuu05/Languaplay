@@ -165,6 +165,7 @@ export interface Exercise {
   wordBank?: string[] | null;
   pairs?: ExercisePairsItem[] | null;
   hint?: string | null;
+  correctAnswer?: string | null;
 }
 
 export interface LessonWithExercises {

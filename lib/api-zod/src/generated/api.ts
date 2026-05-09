@@ -233,6 +233,7 @@ export const GetLessonResponse = zod.object({
         )
         .nullish(),
       hint: zod.string().nullish(),
+      correctAnswer: zod.string().nullish(),
     }),
   ),
 });

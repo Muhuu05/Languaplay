@@ -520,6 +520,9 @@ components:
         hint:
           type: string
           nullable: true
+        correctAnswer:
+          type: string
+          nullable: true
       required: [id, order, kind, prompt]
 
     CheckAnswerBody:
