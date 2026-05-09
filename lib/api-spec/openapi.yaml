@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: LinguaPlay — language learning API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: courses
+    description: Languages and courses
+  - name: lessons
+    description: Lessons and exercises
+  - name: progress
+    description: User progress, XP, streak, hearts
+  - name: social
+    description: Leaderboard and achievements
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,267 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [progress]
+      summary: Get the current learner profile (XP, streak, hearts, gems, active course)
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /me/stats:
+    get:
+      operationId: getMyStats
+      tags: [progress]
+      summary: Aggregate stats — total XP, lessons completed, minutes studied, words learned
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+
+  /me/streak:
+    get:
+      operationId: getMyStreak
+      tags: [progress]
+      summary: Streak calendar for the past 30 days
+      responses:
+        "200":
+          description: Streak calendar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreakCalendar"
+
+  /me/daily-goal:
+    get:
+      operationId: getDailyGoal
+      tags: [progress]
+      summary: Daily XP goal and progress toward it today
+      responses:
+        "200":
+          description: Daily goal status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyGoal"
+    put:
+      operationId: setDailyGoal
+      tags: [progress]
+      summary: Set daily XP goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetDailyGoalBody"
+      responses:
+        "200":
+          description: Updated daily goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyGoal"
+
+  /me/active-course:
+    put:
+      operationId: setActiveCourse
+      tags: [progress]
+      summary: Set the active course (language being learned)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetActiveCourseBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /courses:
+    get:
+      operationId: listCourses
+      tags: [courses]
+      summary: List all available language courses
+      responses:
+        "200":
+          description: Course list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+
+  /courses/{courseId}:
+    get:
+      operationId: getCourse
+      tags: [courses]
+      summary: Get a single course with units and lesson progress for the current user
+      parameters:
+        - in: path
+          name: courseId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Course detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseDetail"
+
+  /lessons/{lessonId}:
+    get:
+      operationId: getLesson
+      tags: [lessons]
+      summary: Get a lesson with all its exercises
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lesson with exercises
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonWithExercises"
+
+  /lessons/{lessonId}/complete:
+    post:
+      operationId: completeLesson
+      tags: [lessons]
+      summary: Submit a finished lesson run — awards XP, updates streak, deducts hearts
+      parameters:
+        - in: path
+          name: lessonId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteLessonBody"
+      responses:
+        "200":
+          description: Lesson completion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonCompletionResult"
+
+  /exercises/{exerciseId}/answer:
+    post:
+      operationId: checkAnswer
+      tags: [lessons]
+      summary: Check a single exercise answer (used for instant feedback)
+      parameters:
+        - in: path
+          name: exerciseId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckAnswerBody"
+      responses:
+        "200":
+          description: Answer feedback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerFeedback"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [social]
+      summary: Top learners this week, ranked by XP
+      parameters:
+        - in: query
+          name: league
+          required: false
+          schema:
+            type: string
+            enum: [bronze, silver, gold, sapphire, ruby, diamond]
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leaderboard"
+
+  /achievements:
+    get:
+      operationId: listAchievements
+      tags: [social]
+      summary: All achievements with progress for the current user
+      responses:
+        "200":
+          description: Achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Achievement"
+
+  /shop/items:
+    get:
+      operationId: listShopItems
+      tags: [progress]
+      summary: Items the learner can buy with gems (streak freeze, refill hearts, double-or-nothing)
+      responses:
+        "200":
+          description: Shop items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShopItem"
+
+  /shop/purchase:
+    post:
+      operationId: purchaseShopItem
+      tags: [progress]
+      summary: Buy a shop item with gems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseShopItemBody"
+      responses:
+        "200":
+          description: Updated profile after purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +299,318 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string }
+        displayName: { type: string }
+        avatarColor: { type: string }
+        xp: { type: integer }
+        gems: { type: integer }
+        hearts: { type: integer }
+        maxHearts: { type: integer }
+        heartsRefillAt:
+          type: string
+          format: date-time
+          nullable: true
+        streakDays: { type: integer }
+        league: { type: string, enum: [bronze, silver, gold, sapphire, ruby, diamond] }
+        dailyGoalXp: { type: integer }
+        activeCourseId:
+          type: string
+          nullable: true
+        activeCourse:
+          allOf:
+            - $ref: "#/components/schemas/Course"
+          nullable: true
+      required:
+        - id
+        - username
+        - displayName
+        - avatarColor
+        - xp
+        - gems
+        - hearts
+        - maxHearts
+        - streakDays
+        - league
+        - dailyGoalXp
+
+    UserStats:
+      type: object
+      properties:
+        totalXp: { type: integer }
+        lessonsCompleted: { type: integer }
+        minutesStudied: { type: integer }
+        wordsLearned: { type: integer }
+        perfectLessons: { type: integer }
+        longestStreakDays: { type: integer }
+        weeklyXp:
+          type: array
+          items:
+            type: object
+            properties:
+              day: { type: string }
+              xp: { type: integer }
+            required: [day, xp]
+      required:
+        - totalXp
+        - lessonsCompleted
+        - minutesStudied
+        - wordsLearned
+        - perfectLessons
+        - longestStreakDays
+        - weeklyXp
+
+    StreakCalendar:
+      type: object
+      properties:
+        streakDays: { type: integer }
+        longestStreakDays: { type: integer }
+        days:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              xp: { type: integer }
+              completed: { type: boolean }
+            required: [date, xp, completed]
+      required: [streakDays, longestStreakDays, days]
+
+    DailyGoal:
+      type: object
+      properties:
+        goalXp: { type: integer }
+        earnedTodayXp: { type: integer }
+      required: [goalXp, earnedTodayXp]
+
+    SetDailyGoalBody:
+      type: object
+      properties:
+        goalXp: { type: integer, enum: [10, 20, 30, 50] }
+      required: [goalXp]
+
+    SetActiveCourseBody:
+      type: object
+      properties:
+        courseId: { type: string }
+      required: [courseId]
+
+    Course:
+      type: object
+      properties:
+        id: { type: string }
+        languageCode: { type: string }
+        languageName: { type: string }
+        flagEmoji: { type: string }
+        accentColor: { type: string }
+        learnerCount: { type: integer }
+      required:
+        - id
+        - languageCode
+        - languageName
+        - flagEmoji
+        - accentColor
+        - learnerCount
+
+    CourseDetail:
+      type: object
+      properties:
+        course:
+          $ref: "#/components/schemas/Course"
+        units:
+          type: array
+          items:
+            $ref: "#/components/schemas/Unit"
+      required: [course, units]
+
+    Unit:
+      type: object
+      properties:
+        id: { type: string }
+        order: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        color: { type: string }
+        lessons:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonSummary"
+      required: [id, order, title, description, color, lessons]
+
+    LessonSummary:
+      type: object
+      properties:
+        id: { type: string }
+        order: { type: integer }
+        title: { type: string }
+        kind: { type: string, enum: [lesson, checkpoint, story, review] }
+        exerciseCount: { type: integer }
+        completedCount: { type: integer }
+        crowns: { type: integer }
+        locked: { type: boolean }
+      required:
+        - id
+        - order
+        - title
+        - kind
+        - exerciseCount
+        - completedCount
+        - crowns
+        - locked
+
+    LessonWithExercises:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        unitId: { type: string }
+        courseId: { type: string }
+        accentColor: { type: string }
+        exercises:
+          type: array
+          items:
+            $ref: "#/components/schemas/Exercise"
+      required: [id, title, unitId, courseId, accentColor, exercises]
+
+    Exercise:
+      type: object
+      properties:
+        id: { type: string }
+        order: { type: integer }
+        kind:
+          type: string
+          enum: [translate, multiple_choice, listen, match_pairs, fill_blank, word_bank]
+        prompt: { type: string }
+        promptTranslation:
+          type: string
+          nullable: true
+        audioUrl:
+          type: string
+          nullable: true
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              text: { type: string }
+              imageUrl:
+                type: string
+                nullable: true
+            required: [id, text]
+          nullable: true
+        wordBank:
+          type: array
+          items: { type: string }
+          nullable: true
+        pairs:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              left: { type: string }
+              right: { type: string }
+            required: [left, right]
+        hint:
+          type: string
+          nullable: true
+      required: [id, order, kind, prompt]
+
+    CheckAnswerBody:
+      type: object
+      properties:
+        answer: { type: string }
+      required: [answer]
+
+    AnswerFeedback:
+      type: object
+      properties:
+        correct: { type: boolean }
+        correctAnswer: { type: string }
+        explanation:
+          type: string
+          nullable: true
+      required: [correct, correctAnswer]
+
+    CompleteLessonBody:
+      type: object
+      properties:
+        correctCount: { type: integer }
+        totalCount: { type: integer }
+        timeSeconds: { type: integer }
+      required: [correctCount, totalCount, timeSeconds]
+
+    LessonCompletionResult:
+      type: object
+      properties:
+        xpAwarded: { type: integer }
+        bonusXp: { type: integer }
+        newStreakDays: { type: integer }
+        heartsRemaining: { type: integer }
+        leveledUp: { type: boolean }
+        gemsAwarded: { type: integer }
+        profile:
+          $ref: "#/components/schemas/UserProfile"
+      required:
+        - xpAwarded
+        - bonusXp
+        - newStreakDays
+        - heartsRemaining
+        - leveledUp
+        - gemsAwarded
+        - profile
+
+    Leaderboard:
+      type: object
+      properties:
+        league: { type: string, enum: [bronze, silver, gold, sapphire, ruby, diamond] }
+        weekEndsAt: { type: string, format: date-time }
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              rank: { type: integer }
+              userId: { type: string }
+              displayName: { type: string }
+              avatarColor: { type: string }
+              weeklyXp: { type: integer }
+              isMe: { type: boolean }
+            required: [rank, userId, displayName, avatarColor, weeklyXp, isMe]
+      required: [league, weekEndsAt, entries]
+
+    Achievement:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        tier: { type: string, enum: [bronze, silver, gold] }
+        progress: { type: integer }
+        target: { type: integer }
+        unlocked: { type: boolean }
+      required: [id, title, description, icon, tier, progress, target, unlocked]
+
+    ShopItem:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        priceGems: { type: integer }
+        category: { type: string, enum: [power_up, heart, streak, cosmetic] }
+        owned: { type: boolean }
+      required: [id, name, description, priceGems, category, owned]
+
+    PurchaseShopItemBody:
+      type: object
+      properties:
+        itemId: { type: string }
+      required: [itemId]
