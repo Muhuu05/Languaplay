@@ -56,7 +56,11 @@ router.get("/lessons/:lessonId", async (req, res) => {
         prompt: e.prompt,
         promptTranslation: e.promptTranslation ?? null,
         audioUrl: e.audioUrl ?? null,
-        choices: e.choices ?? null,
+        choices: e.choices
+          ? (e.choices as Array<string | { id: string; text: string; imageUrl?: string | null }>).map(
+              (c) => typeof c === "string" ? { id: c, text: c, imageUrl: null } : c,
+            )
+          : null,
         wordBank: e.wordBank ?? null,
         pairs: e.pairs ?? null,
         hint: e.hint ?? null,
