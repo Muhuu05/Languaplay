@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 
 export default function Courses() {
   const [, setLocation] = useLocation();
-  const { data: courses, isLoading: coursesLoading } = useListCourses();
+  const { data: courses, isLoading: coursesLoading } = useListCourses({
+    query: { refetchInterval: 30_000 },
+  });
   const { data: user, isLoading: userLoading } = useGetMe();
   const setActiveCourse = useSetActiveCourse();
 
@@ -47,8 +49,8 @@ export default function Courses() {
               disabled={isActive || setActiveCourse.isPending}
               className={cn(
                 "card-press p-6 rounded-2xl border-2 text-left relative overflow-hidden transition-all flex items-center justify-between",
-                isActive 
-                  ? "border-primary bg-primary/5 cursor-default" 
+                isActive
+                  ? "border-primary bg-primary/5 cursor-default"
                   : "border-border bg-card hover:border-primary/50 cursor-pointer border-b-4"
               )}
             >
@@ -56,13 +58,17 @@ export default function Courses() {
                 <div className="text-5xl">{course.flagEmoji}</div>
                 <div>
                   <h3 className="font-bold text-xl">{course.languageName}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground font-medium mt-1">
-                    <Users className="w-4 h-4 mr-1" />
+                  <div className="flex items-center text-sm text-muted-foreground font-medium mt-1 gap-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                    </span>
+                    <Users className="w-4 h-4 ml-1" />
                     {course.learnerCount.toLocaleString()} сурагч
                   </div>
                 </div>
               </div>
-              
+
               {isActive && (
                 <div className="bg-primary text-primary-foreground rounded-full p-1 absolute top-4 right-4 shadow-sm">
                   <CheckCircle2 className="w-5 h-5" />

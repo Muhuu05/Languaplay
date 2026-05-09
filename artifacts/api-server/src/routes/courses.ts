@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import {
   ListCoursesResponse,
   GetCourseResponse,
@@ -16,7 +16,23 @@ router.get("/courses", async (_req, res) => {
     .select()
     .from(schema.courses)
     .orderBy(asc(schema.courses.sortOrder));
-  res.json(ListCoursesResponse.parse(courses));
+
+  const counts = await db
+    .select({
+      courseId: schema.users.activeCourseId,
+      count: sql<number>`cast(count(*) as int)`,
+    })
+    .from(schema.users)
+    .groupBy(schema.users.activeCourseId);
+
+  const countMap = new Map(counts.map((c) => [c.courseId, c.count]));
+
+  const result = courses.map((c) => ({
+    ...c,
+    learnerCount: countMap.get(c.id) ?? 0,
+  }));
+
+  res.json(ListCoursesResponse.parse(result));
 });
 
 router.get("/courses/:courseId", async (req, res) => {
@@ -29,6 +45,16 @@ router.get("/courses/:courseId", async (req, res) => {
     res.status(404).json({ error: "Course not found" });
     return;
   }
+
+  const [countRow] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(schema.users)
+    .where(eq(schema.users.activeCourseId, courseId));
+
+  const courseWithCount = {
+    ...course,
+    learnerCount: countRow?.count ?? 0,
+  };
 
   const courseUnits = await db
     .select()
@@ -87,7 +113,7 @@ router.get("/courses/:courseId", async (req, res) => {
 
   res.json(
     GetCourseResponse.parse({
-      course,
+      course: courseWithCount,
       units,
     }),
   );

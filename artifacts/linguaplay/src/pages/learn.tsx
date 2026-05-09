@@ -10,7 +10,8 @@ export default function Learn() {
     {
       query: {
         enabled: !!user?.activeCourseId,
-        queryKey: ["course", user?.activeCourseId]
+        queryKey: ["course", user?.activeCourseId],
+        refetchInterval: 30_000,
       }
     }
   );
@@ -42,7 +43,11 @@ export default function Learn() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black">{courseDetail.course.languageName}</h1>
-          <p className="text-muted-foreground font-medium mt-1">
+          <p className="flex items-center gap-1.5 text-muted-foreground font-medium mt-1">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
             {courseDetail.course.learnerCount.toLocaleString()} сурагч
           </p>
         </div>
