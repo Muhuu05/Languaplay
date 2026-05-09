@@ -49,7 +49,7 @@ async function ensureUser(clerkUserId: string): Promise<void> {
       username,
       displayName,
       avatarColor: pickColor(clerkUserId),
-      activeCourseId: "course-mn",
+      activeCourseId: "course-en",
     })
     .onConflictDoNothing({ target: schema.users.id });
 }

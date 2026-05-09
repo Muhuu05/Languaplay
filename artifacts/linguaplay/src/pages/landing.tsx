@@ -9,7 +9,7 @@ const features = [
   {
     icon: Globe,
     title: "Олон хэлний курс",
-    desc: "Монгол, Испани, Франц, Япон зэрэг 7 хэлийг сонго.",
+    desc: "Англи, Испани, Франц, Япон зэрэг 7 хэлийг сонго.",
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary/30",
