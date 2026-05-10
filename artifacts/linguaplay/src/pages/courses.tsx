@@ -1,4 +1,4 @@
-import { useListCourses, useSetActiveCourse, useGetMe } from "@workspace/api-client-react";
+import { useListCourses, getListCoursesQueryKey, useSetActiveCourse, useGetMe } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Loader2, Users, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export default function Courses() {
   const [, setLocation] = useLocation();
   const { data: courses, isLoading: coursesLoading } = useListCourses({
-    query: { refetchInterval: 30_000 },
+    query: { queryKey: getListCoursesQueryKey(), refetchInterval: 30_000 },
   });
   const { data: user, isLoading: userLoading } = useGetMe();
   const setActiveCourse = useSetActiveCourse();
