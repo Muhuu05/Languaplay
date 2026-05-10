@@ -43,7 +43,7 @@ function Protected({ children }: { children: React.ReactNode }) {
     <>
       <Show when="signed-in">{children}</Show>
       <Show when="signed-out">
-        <Redirect to="/welcome" />
+        <Redirect to="/sign-in" />
       </Show>
     </>
   );
@@ -58,7 +58,7 @@ function HomeGate() {
         </Layout>
       </Show>
       <Show when="signed-out">
-        <Redirect to="/welcome" />
+        <Redirect to="/sign-in" />
       </Show>
     </>
   );
