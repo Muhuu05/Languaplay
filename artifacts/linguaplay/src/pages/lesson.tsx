@@ -12,10 +12,42 @@ import {
   getGetLessonQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { X, Heart, Loader2, CheckCircle2, XCircle, ArrowRight } from "lucide-react";
+import { X, Heart, Loader2, CheckCircle2, XCircle, ArrowRight, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getWordEmoji, getWordPalette } from "@/lib/word-emoji";
+
+/* ── localStorage progress persistence ── */
+interface SavedProgress {
+  phase: "learn" | "practice";
+  learnIndex: number;
+  currentIndex: number;
+  correctCount: number;
+  wrongCount: number;
+}
+
+const progressKey = (id: string) => `lp_progress_${id}`;
+
+function loadProgress(lessonId: string): SavedProgress | null {
+  try {
+    const raw = localStorage.getItem(progressKey(lessonId));
+    return raw ? (JSON.parse(raw) as SavedProgress) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveProgress(lessonId: string, p: SavedProgress) {
+  try {
+    localStorage.setItem(progressKey(lessonId), JSON.stringify(p));
+  } catch {
+    // storage full — not critical
+  }
+}
+
+function clearProgress(lessonId: string) {
+  localStorage.removeItem(progressKey(lessonId));
+}
 
 /* ── vocabulary card derived from a single exercise ── */
 interface VocabCard {
@@ -38,20 +70,15 @@ function buildVocabCards(exercises: Array<{
     if (!answer || seen.has(answer.toLowerCase())) continue;
     seen.add(answer.toLowerCase());
 
-    // Clean up the Mongolian prompt into a plain phrase
     let mongolian = (ex.prompt ?? "").replace(/[—–-]\s*Англиар.*/, "").trim();
-    // Remove trailing question marks and filler phrases
-    mongolian = mongolian.replace(/\s*гэдгийг Англиар.*/, "")
+    mongolian = mongolian
+      .replace(/\s*гэдгийг Англиар.*/, "")
       .replace(/\s*гэдэг нь.*/, "")
       .replace(/\s*— .*/, "")
       .replace(/\?$/, "")
       .trim();
 
-    cards.push({
-      english: answer,
-      mongolian,
-      emoji: getWordEmoji(answer),
-    });
+    cards.push({ english: answer, mongolian, emoji: getWordEmoji(answer) });
   }
   return cards;
 }
@@ -70,22 +97,35 @@ export default function Lesson() {
   const checkAnswer = useCheckAnswer();
   const completeLesson = useCompleteLesson();
 
-  // ── phase: 'learn' → show vocab cards; 'practice' → exercises ──
-  const [phase, setPhase] = useState<"learn" | "practice">("learn");
-  const [learnIndex, setLearnIndex] = useState(0);
+  // Load saved progress once (synchronously, before first render)
+  const [saved] = useState<SavedProgress | null>(() =>
+    lessonId ? loadProgress(lessonId) : null,
+  );
+  const [resumePrompt, setResumePrompt] = useState(!!saved);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
+  const [phase, setPhase] = useState<"learn" | "practice">(saved?.phase ?? "learn");
+  const [learnIndex, setLearnIndex] = useState(saved?.learnIndex ?? 0);
+  const [currentIndex, setCurrentIndex] = useState(saved?.currentIndex ?? 0);
+  const [correctCount, setCorrectCount] = useState(saved?.correctCount ?? 0);
+  const [wrongCount, setWrongCount] = useState(saved?.wrongCount ?? 0);
   const [localHearts, setLocalHearts] = useState<number | null>(null);
   const [startTime] = useState(Date.now());
 
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [feedback, setFeedback] = useState<{ correct: boolean; correctAnswer: string } | null>(null);
 
+  // Init hearts: subtract already-wrong answers if resuming
   useEffect(() => {
-    if (user && localHearts === null) setLocalHearts(user.hearts);
-  }, [user, localHearts]);
+    if (user && localHearts === null) {
+      setLocalHearts(Math.max(0, user.hearts - (saved?.wrongCount ?? 0)));
+    }
+  }, [user, localHearts, saved]);
+
+  // Persist progress on every meaningful state change
+  useEffect(() => {
+    if (!lessonId) return;
+    saveProgress(lessonId, { phase, learnIndex, currentIndex, correctCount, wrongCount });
+  }, [lessonId, phase, learnIndex, currentIndex, correctCount, wrongCount]);
 
   const vocabCards = useMemo(
     () => (lesson ? buildVocabCards(lesson.exercises) : []),
@@ -100,26 +140,75 @@ export default function Lesson() {
     );
   }
 
-  // ── progress bar: learn phase fills first half, practice fills second ──
+  // Guard restored indices against edge cases (e.g. lesson exercises changed)
+  const safeLearnIndex = Math.min(learnIndex, Math.max(0, vocabCards.length - 1));
+  const safeCurrentIndex = Math.min(currentIndex, Math.max(0, lesson.exercises.length - 1));
+
+  // ── progress bar ──
   const totalSteps = vocabCards.length + lesson.exercises.length;
   const doneSteps =
     phase === "learn"
-      ? learnIndex
-      : vocabCards.length + currentIndex;
+      ? safeLearnIndex
+      : vocabCards.length + safeCurrentIndex;
   const progress = totalSteps > 0 ? (doneSteps / totalSteps) * 100 : 0;
+
+  // ─────────────── RESUME BANNER ───────────────
+  if (resumePrompt) {
+    const exercisesLeft =
+      phase === "practice"
+        ? lesson.exercises.length - safeCurrentIndex
+        : vocabCards.length - safeLearnIndex + lesson.exercises.length;
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div className="text-6xl mb-6">📖</div>
+        <h1 className="text-3xl font-black mb-3">Үргэлжлүүлэх үү?</h1>
+        <p className="text-muted-foreground font-medium mb-2 max-w-sm">
+          Та энэ хичээлийг дуусгаагүй байна.
+        </p>
+        <p className="text-sm text-muted-foreground mb-10">
+          {exercisesLeft} алхам үлдсэн байна
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <button
+            onClick={() => setResumePrompt(false)}
+            className="button-press w-full py-4 rounded-2xl bg-primary text-white font-black text-lg border-b-4 border-primary-border flex items-center justify-center gap-2"
+          >
+            <ArrowRight className="w-5 h-5" />
+            Үргэлжлүүлэх
+          </button>
+          <button
+            onClick={() => {
+              clearProgress(lesson.id);
+              setPhase("learn");
+              setLearnIndex(0);
+              setCurrentIndex(0);
+              setCorrectCount(0);
+              setWrongCount(0);
+              setLocalHearts(user?.hearts ?? 5);
+              setResumePrompt(false);
+            }}
+            className="button-press w-full py-4 rounded-2xl bg-muted text-muted-foreground font-bold text-lg border-b-4 border-muted-border flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Эхнээс эхлэх
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ─────────────── LEARN PHASE ───────────────
   if (phase === "learn") {
-    const card = vocabCards[learnIndex];
+    const card = vocabCards[safeLearnIndex];
 
-    // If no vocab cards (edge case), skip straight to practice
     if (!card) {
       setPhase("practice");
       return null;
     }
 
     const palette = getWordPalette(card.english);
-    const isLast = learnIndex === vocabCards.length - 1;
+    const isLast = safeLearnIndex === vocabCards.length - 1;
 
     const handleLearnNext = () => {
       if (isLast) {
@@ -131,7 +220,6 @@ export default function Lesson() {
 
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        {/* Header */}
         <div className="h-16 flex items-center px-4 max-w-4xl mx-auto w-full gap-4">
           <button
             onClick={() => setLocation("/")}
@@ -146,11 +234,10 @@ export default function Lesson() {
             />
           </div>
           <div className="text-sm font-bold text-muted-foreground">
-            {learnIndex + 1}/{vocabCards.length}
+            {safeLearnIndex + 1}/{vocabCards.length}
           </div>
         </div>
 
-        {/* Vocab card */}
         <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-lg mx-auto w-full">
           <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">
             Үгийг судлах
@@ -158,29 +245,23 @@ export default function Lesson() {
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={learnIndex}
+              key={safeLearnIndex}
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -30, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="w-full"
             >
-              {/* Card face */}
-              <div className={cn(
-                "rounded-3xl border-2 border-b-4 overflow-hidden shadow-lg mb-6",
-                "border-border"
-              )}>
-                {/* Emoji banner */}
-                <div className={cn(
-                  "flex items-center justify-center py-10 text-8xl",
-                  "bg-gradient-to-br",
-                  palette.bg,
-                  palette.dark,
-                )}>
+              <div className={cn("rounded-3xl border-2 border-b-4 overflow-hidden shadow-lg mb-6", "border-border")}>
+                <div
+                  className={cn(
+                    "flex items-center justify-center py-10 text-8xl bg-gradient-to-br",
+                    palette.bg,
+                    palette.dark,
+                  )}
+                >
                   {card.emoji}
                 </div>
-
-                {/* Text area */}
                 <div className="bg-card px-6 py-6 text-center">
                   <p className="text-3xl font-black mb-2">{card.english}</p>
                   <p className="text-muted-foreground font-medium text-lg">{card.mongolian}</p>
@@ -202,8 +283,8 @@ export default function Lesson() {
   }
 
   // ─────────────── PRACTICE PHASE ───────────────
-  const exercise = lesson.exercises[currentIndex];
-  const isFinished = currentIndex >= lesson.exercises.length;
+  const exercise = lesson.exercises[safeCurrentIndex];
+  const isFinished = safeCurrentIndex >= lesson.exercises.length;
 
   const handleCheck = () => {
     if (!selectedAnswer || feedback) return;
@@ -228,12 +309,16 @@ export default function Lesson() {
     setFeedback(null);
     setSelectedAnswer("");
 
-    if (currentIndex === lesson.exercises.length - 1) {
+    if (safeCurrentIndex === lesson.exercises.length - 1) {
       const timeSeconds = Math.floor((Date.now() - startTime) / 1000);
       completeLesson.mutate(
-        { lessonId: lesson.id, data: { correctCount, totalCount: lesson.exercises.length, timeSeconds } },
+        {
+          lessonId: lesson.id,
+          data: { correctCount, totalCount: lesson.exercises.length, timeSeconds },
+        },
         {
           onSuccess: () => {
+            clearProgress(lesson.id);
             queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetCourseQueryKey(lesson.courseId) });
             queryClient.invalidateQueries({ queryKey: getGetMyStreakQueryKey() });
@@ -263,7 +348,10 @@ export default function Lesson() {
             Дэлгүүр рүү очих
           </button>
           <button
-            onClick={() => setLocation("/")}
+            onClick={() => {
+              clearProgress(lesson.id);
+              setLocation("/");
+            }}
             className="button-press w-full py-4 rounded-2xl bg-muted text-muted-foreground font-bold text-lg border-b-4 border-muted-border"
           >
             Хичээлээс гарах
@@ -307,7 +395,7 @@ export default function Lesson() {
       <div className="flex-1 max-w-3xl mx-auto w-full p-4 md:p-8 flex flex-col justify-center">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentIndex}
+            key={safeCurrentIndex}
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
@@ -351,11 +439,7 @@ export default function Lesson() {
                         )}
                       >
                         {choice.imageUrl ? (
-                          <img
-                            src={choice.imageUrl}
-                            alt={choice.text}
-                            className="h-full w-full object-cover"
-                          />
+                          <img src={choice.imageUrl} alt={choice.text} className="h-full w-full object-cover" />
                         ) : (
                           <span className="select-none text-5xl md:text-6xl drop-shadow-sm transition-transform group-hover:scale-110">
                             {emoji}
@@ -401,8 +485,7 @@ export default function Lesson() {
             {exercise.kind !== "multiple_choice" && exercise.kind !== "translate" && (
               <div className="p-8 border-2 border-dashed border-orange-300 bg-orange-50 rounded-2xl text-center">
                 <p className="font-bold text-orange-600">
-                  '{exercise.kind}' төрлийн дасгалын дэлгэц энэ хувилбарт
-                  бэлэн болж байна.
+                  '{exercise.kind}' төрлийн дасгалын дэлгэц энэ хувилбарт бэлэн болж байна.
                 </p>
                 <button
                   className="mt-4 px-4 py-2 bg-orange-200 text-orange-800 rounded-xl font-bold"
