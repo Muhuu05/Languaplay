@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Switch, Route, Redirect, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { ClerkProvider, useAuth, useClerk } from "@clerk/react";
-import { Loader2 } from "lucide-react";
+import { ClerkProvider, Show, useClerk } from "@clerk/react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
@@ -39,37 +38,43 @@ function stripBase(path: string): string {
     : path;
 }
 
-function AuthLoading() {
+function Protected({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-    </div>
+    <>
+      <Show when="signed-in">{children}</Show>
+      <Show when="signed-out">
+        <Redirect to="/welcome" />
+      </Show>
+    </>
   );
 }
 
-function Protected({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return <AuthLoading />;
-  if (!isSignedIn) return <Redirect to="/sign-in" />;
-  return <>{children}</>;
-}
-
 function HomeGate() {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return <AuthLoading />;
-  if (!isSignedIn) return <Redirect to="/sign-in" />;
   return (
-    <Layout>
-      <Learn />
-    </Layout>
+    <>
+      <Show when="signed-in">
+        <Layout>
+          <Learn />
+        </Layout>
+      </Show>
+      <Show when="signed-out">
+        <Redirect to="/welcome" />
+      </Show>
+    </>
   );
 }
 
 function WelcomeGate() {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded) return <AuthLoading />;
-  if (isSignedIn) return <Redirect to="/" />;
-  return <Landing />;
+  return (
+    <>
+      <Show when="signed-out">
+        <Landing />
+      </Show>
+      <Show when="signed-in">
+        <Redirect to="/" />
+      </Show>
+    </>
+  );
 }
 
 function ClerkQueryClientCacheInvalidator() {
