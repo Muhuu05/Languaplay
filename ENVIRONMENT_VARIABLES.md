@@ -19,7 +19,7 @@ Get your keys from [Clerk Dashboard](https://dashboard.clerk.com)
 ### Backend (Render)
 - `DATABASE_URL`: PostgreSQL connection string
   - Format: `postgresql://user:password@host:port/database`
-  - Get from Supabase Dashboard → Settings → Database
+  - Get from Neon Console → Project → Connection Details
 
 ## Server Configuration
 
@@ -35,13 +35,12 @@ Get your keys from [Clerk Dashboard](https://dashboard.clerk.com)
 3. Go to "API Keys" section
 4. Copy Publishable Key and Secret Key
 
-### Supabase Connection String
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+### Neon Connection String
+1. Go to [Neon Console](https://console.neon.tech)
 2. Select your project
-3. Go to Settings → Database
-4. Find "Connection String" section
-5. Copy the "URI" format
-6. Replace `[YOUR-PASSWORD]` with your database password
+3. Open "Connection Details"
+4. Copy the pooled PostgreSQL connection string
+5. Use it as `DATABASE_URL` for the backend and database tooling
 
 ## Example .env Files
 
@@ -58,7 +57,7 @@ NODE_ENV=development
 
 ### Production Backend (Render)
 ```
-DATABASE_URL=postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:5432/postgres
+DATABASE_URL=postgresql://user:password@ep-example-pooler.region.aws.neon.tech/neondb?sslmode=require
 CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_SECRET_KEY=sk_live_...
 NODE_ENV=production

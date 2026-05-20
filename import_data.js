@@ -1,8 +1,12 @@
 const fs = require("fs");
 const { Client } = require("pg");
 
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable is required");
+}
+
 const client = new Client({
-  connectionString: "postgresql://zulaa@localhost:5432/linguaplay",
+  connectionString: process.env.DATABASE_URL,
 });
 
 async function importData() {

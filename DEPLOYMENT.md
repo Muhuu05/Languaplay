@@ -9,13 +9,13 @@ This guide will help you deploy LinguaPlay to free tier hosting services.
 - Render account (free)
 - Clerk account (free)
 
-## Step 1: Set up Supabase Database
+## Step 1: Set up Neon Database
 
-1. Go to [supabase.com](https://supabase.com) and sign up
+1. Go to [Neon Console](https://console.neon.tech) and sign up
 2. Create a new project called "linguaplay"
-3. Wait for the project to be ready (2-3 minutes)
-4. Go to Settings → Database
-5. Copy the connection string (URI format)
+3. Wait for the project to be ready
+4. Open "Connection Details"
+5. Copy the pooled PostgreSQL connection string
 6. Save it for later
 
 ## Step 2: Push Database Schema
@@ -28,7 +28,7 @@ pnpm install
 
 2. Set up environment variable:
 ```bash
-export DATABASE_URL="your_supabase_connection_string"
+export DATABASE_URL="your_neon_connection_string"
 ```
 
 3. Push the schema:
@@ -57,7 +57,7 @@ node import_data.js
 6. Add environment variables:
    - `NODE_ENV`: production
    - `PORT`: 10000
-   - `DATABASE_URL`: (your Supabase connection string)
+   - `DATABASE_URL`: (your Neon connection string)
    - `CLERK_PUBLISHABLE_KEY`: (from Clerk dashboard)
    - `CLERK_SECRET_KEY`: (from Clerk dashboard)
 7. Click "Deploy Web Service"
@@ -102,7 +102,7 @@ node import_data.js
 ### Backend (Render)
 - `NODE_ENV`: production
 - `PORT`: 10000
-- `DATABASE_URL`: Supabase connection string
+- `DATABASE_URL`: Neon connection string
 - `CLERK_PUBLISHABLE_KEY`: From Clerk dashboard
 - `CLERK_SECRET_KEY`: From Clerk dashboard
 
@@ -128,15 +128,15 @@ node import_data.js
 - Check Clerk authentication is working
 
 ### Database connection fails
-- Verify Supabase connection string
-- Check Supabase project is active
+- Verify Neon connection string
+- Check Neon project and compute are active
 - Ensure database schema was pushed
 
 ## Free Tier Limitations
 
 - **Vercel**: 100GB bandwidth/month, 6GB build output
 - **Render**: 750 hours/month, sleeps after 15min inactivity
-- **Supabase**: 500MB database, 2GB file storage
+- **Neon**: Free tier Serverless Postgres limits apply
 
 ## Next Steps
 
