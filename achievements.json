@@ -1,0 +1,82 @@
+[
+  {
+    "id": "ach-first-lesson",
+    "title": "Эхний алхам",
+    "description": "Эхний хичээлээ дуулгаарай",
+    "icon": "🎯",
+    "tier": "bronze",
+    "target": 1,
+    "metric": "lessons_completed",
+    "sort_order": 1
+  },
+  {
+    "id": "ach-lessons-10",
+    "title": "Ачлалт суралцагч",
+    "description": "10 хичээл дуулгаарай",
+    "icon": "📚",
+    "tier": "silver",
+    "target": 10,
+    "metric": "lessons_completed",
+    "sort_order": 7
+  },
+  {
+    "id": "ach-perfect-5",
+    "title": "Гүйцэтгэлтэй",
+    "description": "5 төгс хичээл хийгээрэй",
+    "icon": "✨",
+    "tier": "gold",
+    "target": 5,
+    "metric": "perfect_lessons",
+    "sort_order": 8
+  },
+  {
+    "id": "ach-streak-3",
+    "title": "Гал дотор",
+    "description": "3 өдрийн цуваа баригаарай",
+    "icon": "🔥",
+    "tier": "bronze",
+    "target": 3,
+    "metric": "streak_days",
+    "sort_order": 2
+  },
+  {
+    "id": "ach-streak-30",
+    "title": "Зогсоохгүй",
+    "description": "30 өдрийн цуваа баригаарай",
+    "icon": "💎",
+    "tier": "gold",
+    "target": 30,
+    "metric": "streak_days",
+    "sort_order": 4
+  },
+  {
+    "id": "ach-streak-7",
+    "title": "Долоо өдрийн баатар",
+    "description": "7 өдрийн цуваа баригаарай",
+    "icon": "⚡",
+    "tier": "silver",
+    "target": 7,
+    "metric": "streak_days",
+    "sort_order": 3
+  },
+  {
+    "id": "ach-xp-100",
+    "title": "Зуун",
+    "description": "Нийт 100 XP аваарай",
+    "icon": "⭐",
+    "tier": "bronze",
+    "target": 100,
+    "metric": "total_xp",
+    "sort_order": 5
+  },
+  {
+    "id": "ach-xp-1000",
+    "title": "XP мэргэн",
+    "description": "Нийт 1,000 XP аваарай",
+    "icon": "🏆",
+    "tier": "gold",
+    "target": 1000,
+    "metric": "total_xp",
+    "sort_order": 6
+  }
+]

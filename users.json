@@ -1,0 +1,20 @@
+[
+  {
+    "id": "user_3DUxScG8wxvQHYCytfdugCdxEuR",
+    "username": "khmunhtuguldur",
+    "displayName": "khmunhtuguldur",
+    "avatarColor": "#58cc02",
+    "xp": 0,
+    "gems": 500,
+    "hearts": 5,
+    "maxHearts": 5,
+    "heartsRefillAt": null,
+    "streakDays": 0,
+    "longestStreakDays": 0,
+    "league": "bronze",
+    "dailyGoalXp": 20,
+    "activeCourseId": "course-en",
+    "lastActiveDate": null,
+    "createdAt": "2026-05-09T18:19:12.007Z"
+  }
+]

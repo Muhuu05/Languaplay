@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: linguaplay-api
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: linguaplay-db
+          property: connectionString
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+
+databases:
+  - name: linguaplay-db
+    databaseName: linguaplay
+    user: linguaplay
+    plan: free

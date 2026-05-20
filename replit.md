@@ -26,13 +26,13 @@ A Duolingo-style language-learning app with Clerk authentication, XP/streak/hear
 
 ## Where things live
 
-- `lib/api-spec/openapi.yaml` — OpenAPI contract (source of truth)
-- `lib/db/src/schema/index.ts` — Drizzle DB schema
-- `lib/api-zod/src/generated/api.ts` — Generated Zod validators (server-side)
-- `lib/api-client-react/src/generated/api.ts` — Generated React Query hooks (frontend)
-- `artifacts/api-server/src/routes/` — Backend route handlers
-- `artifacts/linguaplay/src/pages/` — Frontend pages
-- `artifacts/linguaplay/src/components/` — UI components
+- `Shared/api-spec/openapi.yaml` — OpenAPI contract (source of truth)
+- `Backend/db/src/schema/index.ts` — Drizzle DB schema
+- `Shared/api-zod/src/generated/api.ts` — Generated Zod validators (server-side)
+- `Frontend/api-client-react/src/generated/api.ts` — Generated React Query hooks (frontend)
+- `Backend/api-server/src/routes/` — Backend route handlers
+- `Frontend/linguaplay/src/pages/` — Frontend pages
+- `Frontend/linguaplay/src/components/` — UI components
 
 ## Architecture decisions
 

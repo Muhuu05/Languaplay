@@ -1,0 +1,38 @@
+[
+  {
+    "id": "item-double-xp",
+    "name": "Хос XP (1 өдөр)",
+    "description": "24 цагийн турш хос XP авна",
+    "price_gems": 200,
+    "category": "power_up",
+    "effect": "double_xp",
+    "sort_order": 3
+  },
+  {
+    "id": "item-heart-refill",
+    "name": "Сэтгэл дүүргэлт",
+    "description": "Сэтгэлсүрдлийг шууд дүүргэх",
+    "price_gems": 350,
+    "category": "heart",
+    "effect": "refill_hearts",
+    "sort_order": 2
+  },
+  {
+    "id": "item-streak-freeze",
+    "name": "Цуваа хадгалах",
+    "description": "Дасгал хийгээгүй үед цувааг 1 өдөр хадгална",
+    "price_gems": 10,
+    "category": "streak",
+    "effect": "streak_freeze",
+    "sort_order": 1
+  },
+  {
+    "id": "item-streak-restore",
+    "name": "Цуваа сэргээх",
+    "description": "1 өдрийн дотор тасарсан цувааг сэргээнэ",
+    "price_gems": 200,
+    "category": "streak",
+    "effect": "restore_streak",
+    "sort_order": 4
+  }
+]
