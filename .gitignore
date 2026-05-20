@@ -37,6 +37,16 @@ yarn-error.log
 testem.log
 /typings
 
+# Environment (keep .env.production and .env.example committed)
+.env
+.env.local
+.env.development.local
+.env.production.local
+**/.env
+**/.env.local
+!**/.env.production
+!**/.env.example
+
 # System Files
 .DS_Store
 Thumbs.db
