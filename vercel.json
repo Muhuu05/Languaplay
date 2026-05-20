@@ -2,9 +2,5 @@
   "buildCommand": "pnpm --filter @workspace/linguaplay run build",
   "outputDirectory": "Frontend/linguaplay/dist/public",
   "framework": "vite",
-  "installCommand": "pnpm install",
-  "env": {
-    "VITE_CLERK_PUBLISHABLE_KEY": "@clerk_publishable_key",
-    "VITE_API_URL": "@api_url"
-  }
+  "installCommand": "pnpm install"
 }
