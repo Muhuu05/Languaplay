@@ -70,7 +70,33 @@ async function importData() {
     }
     console.log("✅ Shop items imported.");
 
-    // 5. IMPORT ACHIEVEMENTS
+    // 5. IMPORT EXERCISES
+    const exercises = JSON.parse(fs.readFileSync("./exercises.json", "utf8"));
+    for (const ex of exercises) {
+      await client.query(
+        `INSERT INTO exercises (id, lesson_id, "order", kind, prompt, prompt_translation, audio_url, correct_answer, accepted_answers, choices, word_bank, pairs, hint, explanation) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (id) DO NOTHING`,
+        [
+          ex.id,
+          ex.lesson_id,
+          ex.order,
+          ex.kind,
+          ex.prompt,
+          ex.prompt_translation,
+          ex.audio_url,
+          ex.correct_answer,
+          ex.accepted_answers ? JSON.stringify(ex.accepted_answers) : null,
+          ex.choices ? JSON.stringify(ex.choices) : null,
+          ex.word_bank ? JSON.stringify(ex.word_bank) : null,
+          ex.pairs ? JSON.stringify(ex.pairs) : null,
+          ex.hint,
+          ex.explanation,
+        ],
+      );
+    }
+    console.log("✅ Exercises imported.");
+
+    // 6. IMPORT ACHIEVEMENTS
     const achievements = JSON.parse(
       fs.readFileSync("./achievements.json", "utf8"),
     );
