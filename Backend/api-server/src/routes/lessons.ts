@@ -14,8 +14,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-// Temporarily disable auth for development
-// router.use(requireAuth);
+router.use(requireAuth);
 
 function normalize(s: string) {
   return s
@@ -80,8 +79,6 @@ router.get("/lessons/:lessonId", async (req, res) => {
 });
 
 router.post("/exercises/:exerciseId/answer", async (req, res) => {
-  // Temporarily use a hardcoded user ID for development
-  const userId = req.userId || "dev-user-123";
   const exerciseId = req.params.exerciseId;
   const body = CheckAnswerBody.parse(req.body);
   const [ex] = await db
@@ -118,8 +115,7 @@ function bumpLeague(currentLeague: string, weeklyXp: number): string {
 }
 
 router.post("/lessons/:lessonId/complete", async (req, res) => {
-  // Temporarily use a hardcoded user ID for development
-  const userId = req.userId || "dev-user-123";
+  const userId = req.userId!;
   const lessonId = req.params.lessonId;
   const body = CompleteLessonBody.parse(req.body);
   const [lesson] = await db

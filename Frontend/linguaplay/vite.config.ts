@@ -54,12 +54,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Keep a fallback for the direct courses route
-      "/courses": {
-        target: "http://localhost:5050",
-        changeOrigin: true,
-        secure: false,
-      },
     },
   },
   preview: {

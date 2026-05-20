@@ -1,16 +1,14 @@
 import { Router, type IRouter } from "express";
-import { eq, asc, sql } from "drizzle-orm";
+import { eq, asc, inArray, sql } from "drizzle-orm";
 import { db, schema } from "../lib/db";
 import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-// Temporarily disable auth for development
-// router.use(requireAuth);
+router.use(requireAuth);
 
 router.get("/ai/progress", async (req, res) => {
-  // Temporarily use a hardcoded user ID for development
-  const userId = req.userId || "dev-user-123";
+  const userId = req.userId!;
 
   const [user] = await db
     .select()
@@ -152,8 +150,7 @@ router.get("/ai/progress", async (req, res) => {
 });
 
 router.get("/ai/recommend-lesson", async (req, res) => {
-  // Temporarily use a hardcoded user ID for development
-  const userId = req.userId || "dev-user-123";
+  const userId = req.userId!;
 
   const [user] = await db
     .select()
@@ -181,15 +178,24 @@ router.get("/ai/recommend-lesson", async (req, res) => {
     .where(eq(schema.userLessonProgress.userId, userId));
 
   const completedLessonIds = new Set(completedLessons.map((p) => p.lessonId));
+  const unitIds = courseUnits.map((unit) => unit.id);
+  const lessons = unitIds.length
+    ? await db
+        .select()
+        .from(schema.lessons)
+        .where(inArray(schema.lessons.unitId, unitIds))
+        .orderBy(asc(schema.lessons.order))
+    : [];
+  const lessonsByUnit = new Map<string, typeof lessons>();
+
+  for (const lesson of lessons) {
+    const unitLessons = lessonsByUnit.get(lesson.unitId) ?? [];
+    unitLessons.push(lesson);
+    lessonsByUnit.set(lesson.unitId, unitLessons);
+  }
 
   for (const unit of courseUnits) {
-    const lessons = await db
-      .select()
-      .from(schema.lessons)
-      .where(eq(schema.lessons.unitId, unit.id))
-      .orderBy(asc(schema.lessons.order));
-
-    for (const lesson of lessons) {
+    for (const lesson of lessonsByUnit.get(unit.id) ?? []) {
       if (!completedLessonIds.has(lesson.id)) {
         res.json({
           recommendation: {

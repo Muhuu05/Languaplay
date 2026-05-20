@@ -11,6 +11,35 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+const configuredOrigins = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin: string): boolean {
+  if (
+    origin.startsWith("http://localhost") ||
+    origin.startsWith("http://127.0.0.1")
+  ) {
+    return true;
+  }
+
+  if (configuredOrigins.includes(origin)) {
+    return true;
+  }
+
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return (
+      protocol === "https:" &&
+      (hostname === "linguaplay-ten.vercel.app" ||
+        hostname.endsWith(".vercel.app"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 app.use(
   pinoHttp({
     logger,
@@ -40,15 +69,7 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      // Allow all localhost and 127.0.0.1 origins in development
-      if (
-        origin.startsWith("http://localhost") ||
-        origin.startsWith("http://127.0.0.1")
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      callback(null, isAllowedOrigin(origin));
     },
   }),
 );
