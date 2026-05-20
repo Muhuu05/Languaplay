@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter @workspace/linguaplay run build",
+  "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/linguaplay run build",
   "outputDirectory": "Frontend/linguaplay/dist/public",
   "framework": "vite",
   "installCommand": "pnpm install",
